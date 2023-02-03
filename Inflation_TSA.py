@@ -6,6 +6,8 @@ import seaborn as sns
 from statsmodels.tsa.stattools import adfuller
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from statsmodels.tsa.arima.model import ARIMA
+from statsmodels.tsa.seasonal import seasonal_decompose
+from statsmodels.tsa.statespace.sarimax import SARIMAX
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -49,12 +51,12 @@ test_set = pd.DataFrame(dataset.iloc[split_index:])
 # print(test_set)
 # ad fuller test, does pass test but not necessarily stationary from EDA plots
 ad_results = adfuller(train_set['Annual_Inflation%'])
-# print(ad_results)
+print(ad_results)
 # (-2.1665169105174336, 0.21862147991454323, 2, 59, {'1%': -3.5463945337644063, '5%': -2.911939409384601, '10%': -2.5936515282964665}, 195.73539928447815)
 
 # find optimal diff to make time series stationary
-train_diff = train_set.diff()
-sns.lineplot(data=train_diff, x=train_diff.index, y="Annual_Inflation%")
+# train_diff = train_set.diff().dropna()
+sns.lineplot(data=train_set, x=train_set.index, y="Annual_Inflation%")
 # plt.show()
 # optimal is diff x2
 
@@ -64,6 +66,7 @@ fig, (ax1, ax2) = plt.subplots(2,1, figsize=(12,8))
  
 # Plot the ACF of df
 plot_acf(train_set, lags=15, zero=False, ax=ax1)
+# 8 period seasonality based on ACF
 
 # Plot the PACF of df
 plot_pacf(train_set, lags=15, zero=False, ax=ax2, method='ywm')
@@ -77,7 +80,7 @@ plt.show()
 #     for q in range(4):
 #         try:
 #             # create and fit ARMA(p,q) model
-#             model = ARIMA(train_set, order=(p,1,q))
+#             model = ARIMA(train_set, order=(p,0,q))
 #             results = model.fit()
             
 #             # Print order and results
@@ -85,18 +88,29 @@ plt.show()
             
 #         except:
 #             print(p, q, None, None)
-# ARMA (2,1,0) is best from this
-# 0 0 177.85893120220547 179.6655936919758
-# 0 1 167.40747531928073 171.02080029882137
-# 0 2 166.9913747172528 172.41136218656376
-# 1 0 176.1059684891346 179.71929346867523
-# 1 1 168.65623823378127 174.07622570309223
-# 1 2 166.16006460685935 173.38671456594062
-# 2 0 164.03705373748522 169.4570412067962
-# 2 1 165.84276033639014 173.0694102954714
-# 2 2 166.729739203939 175.7630516527906
-
-best_model = ARIMA(train_set, order=(2,1,0))
+# ARMA (1,0,1) is best from this
+# 0 0 231.7562689102466 235.41355170322478
+# 0 1 186.919057887745 192.40498207721228
+# 0 2 173.37902755856703 180.69359314452342
+# 0 3 171.32000458167386 180.46321156411932
+# 1 0 182.15735680986313 187.64328099933041
+# 1 1 167.7095375105422 175.02410309649858
+# 1 2 169.62369418225194 178.7669011646974
+# 1 3 170.93606556497144 181.907913943906
+# 2 0 175.93028090621235 183.24484649216873
+# 2 1 169.6521647170993 178.79537169954477
+# 2 2 171.52828217503057 182.50013055396514
+# 2 3 172.89205842321098 185.69254819863465
+# 3 0 169.35055446363245 178.49376144607794
+# 3 1 171.0932825427185 182.06513092165306
+# 3 2 172.36111097228255 185.16160074770622
+# 3 3 172.25146308637767 186.88059425829044
+decomp = seasonal_decompose(train_set['Annual_Inflation%'], 
+                            period=4)
+decomp.plot()
+plt.show()
+# find the optimal seasonal order
+best_model = SARIMAX(train_set, order=(1,0,1), seasonal_order=(1,1,0,8))
 results = best_model.fit()
 
 # plots KDE, resids
