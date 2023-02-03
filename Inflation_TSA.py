@@ -105,12 +105,12 @@ plt.show()
 # 3 1 171.0932825427185 182.06513092165306
 # 3 2 172.36111097228255 185.16160074770622
 # 3 3 172.25146308637767 186.88059425829044
-decomp = seasonal_decompose(train_set['Annual_Inflation%'], 
-                            period=4)
-decomp.plot()
-plt.show()
+# decomp = seasonal_decompose(train_set['Annual_Inflation%'], 
+#                             period=4)
+# decomp.plot()
+# plt.show()
 # find the optimal seasonal order
-best_model = SARIMAX(train_set, order=(1,0,1), seasonal_order=(1,1,0,8))
+best_model = SARIMAX(train_set, order=(1,0,1), seasonal_order=(0,1,0,8))
 results = best_model.fit()
 
 # plots KDE, resids
@@ -131,8 +131,8 @@ train_forecast = pd.Series(train_forecast,index=train_forecast.index)
 train_forecast = pd.DataFrame(train_forecast)
 train_forecast.columns=["Annual_Inflation%"]
 
-print(test_set)
-print(train_forecast)
+# print(test_set)
+# print(train_forecast)
 plt.plot(train_set.index, train_set, label='observed')
 plt.plot(train_forecast.index, train_forecast, color='r', label='forecast')
 plt.plot(test_set.index, test_set, color='g', label='actual')
