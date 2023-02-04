@@ -66,11 +66,11 @@ sns.lineplot(data=train_set, x=train_set.index, y="Annual_Inflation%")
 fig, (ax1, ax2) = plt.subplots(2,1, figsize=(12,8))
  
 # Plot the ACF of df
-plot_acf(train_set, lags=15, zero=False, ax=ax1)
+plot_acf(train_set, lags=18, zero=False, ax=ax1)
 # 8 period seasonality based on ACF
 
 # Plot the PACF of df
-plot_pacf(train_set, lags=15, zero=False, ax=ax2, method='ywm')
+plot_pacf(train_set, lags=18, zero=False, ax=ax2, method='ywm')
 
 plt.show()
 
@@ -126,18 +126,28 @@ results = best_model.fit()
 
 
 # forecast results
-train_forecast = results.get_forecast(steps=test_set.shape[0], dynamic=True).predicted_mean
+train_forecast = results.get_forecast(steps=test_set.shape[0]).predicted_mean
 train_forecast = pd.Series(train_forecast,index=train_forecast.index)
 train_forecast = pd.DataFrame(train_forecast)
 train_forecast.columns=["Annual_Inflation%"]
 
+# model error metrics
 mse = mean_squared_error(test_set,train_forecast)
 print("MSE: ", mse)
 mape = mean_absolute_percentage_error(test_set,train_forecast)
 print("MAPE: ", mape)
-plt.plot(train_set.index, train_set, label='observed')
+
+# expanded forecast
+test_forecast = results.get_forecast(steps=test_set.shape[0] + 10).predicted_mean
+test_forecast =  pd.Series(test_forecast,index=test_forecast.index)
+test_forecast = pd.DataFrame(test_forecast)
+test_forecast = test_forecast.iloc[test_set.shape[0]:]
+train_forecast.columns=["Annual_Inflation%"]
+
+
+plt.plot(dataset.index, dataset, label='observed')
 plt.plot(train_forecast.index, train_forecast, color='r', label='forecast')
-plt.plot(test_set.index, test_set, color='g', label='actual')
+plt.plot(test_forecast.index, test_forecast, color='g', label='10-year')
 plt.xlabel("Date")
 plt.xticks(rotation=90)
 plt.ylabel("Annual_Inflation%")
