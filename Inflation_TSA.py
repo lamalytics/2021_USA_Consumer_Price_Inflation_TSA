@@ -141,10 +141,11 @@ print("MAPE: ", mape)
 test_forecast = results.get_forecast(steps=test_set.shape[0] + 10).predicted_mean
 test_forecast =  pd.Series(test_forecast,index=test_forecast.index)
 test_forecast = pd.DataFrame(test_forecast)
+# slice to select the forecasted years not in dataset
 test_forecast = test_forecast.iloc[test_set.shape[0]:]
 train_forecast.columns=["Annual_Inflation%"]
 
-
+# plot 3 plots of observed data as a whole, the train_set vs test_set, and 10-year
 plt.plot(dataset.index, dataset, label='observed')
 plt.plot(train_forecast.index, train_forecast, color='r', label='forecast')
 plt.plot(test_forecast.index, test_forecast, color='g', label='10-year')
