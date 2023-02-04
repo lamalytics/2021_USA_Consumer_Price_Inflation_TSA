@@ -8,6 +8,7 @@ from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from statsmodels.tsa.arima.model import ARIMA
 from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.tsa.statespace.sarimax import SARIMAX
+from sklearn.metrics import mean_squared_error, mean_absolute_percentage_error
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -109,8 +110,10 @@ plt.show()
 #                             period=4)
 # decomp.plot()
 # plt.show()
-# find the optimal seasonal order
-best_model = SARIMAX(train_set, order=(1,0,1), seasonal_order=(0,1,0,8))
+
+# find the optimal seasonal order thru trial and error
+# can use grid search for optimal (takes high cpu power)
+best_model = SARIMAX(train_set, order=(1,0,1), seasonal_order=(0,1,0,16))
 results = best_model.fit()
 
 # plots KDE, resids
@@ -121,9 +124,6 @@ results = best_model.fit()
 # print(results.summary())
 # fail to reject null
 
-# seasonal patterns
-# acf does not show any significant evidence for seasonality
-
 
 # forecast results
 train_forecast = results.get_forecast(steps=test_set.shape[0], dynamic=True).predicted_mean
@@ -131,8 +131,10 @@ train_forecast = pd.Series(train_forecast,index=train_forecast.index)
 train_forecast = pd.DataFrame(train_forecast)
 train_forecast.columns=["Annual_Inflation%"]
 
-# print(test_set)
-# print(train_forecast)
+mse = mean_squared_error(test_set,train_forecast)
+print("MSE: ", mse)
+mape = mean_absolute_percentage_error(test_set,train_forecast)
+print("MAPE: ", mape)
 plt.plot(train_set.index, train_set, label='observed')
 plt.plot(train_forecast.index, train_forecast, color='r', label='forecast')
 plt.plot(test_set.index, test_set, color='g', label='actual')
